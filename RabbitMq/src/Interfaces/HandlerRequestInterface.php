@@ -2,7 +2,7 @@
 
 namespace Miladmmd\RabbitMq\Interfaces;
 
-interface HandlerInterface
+interface HandlerRequestInterface
 {
     public function setRequest($request);
     public function handle();

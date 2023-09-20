@@ -2,7 +2,7 @@
 
 namespace Miladmmd\RabbitMq\Interfaces;
 
-interface RpcSendRequestInterface extends MethodInterface
+interface RpcSendRequestInterface
 {
     public function sendMessage(array $message);
     public function setRoutingKey(string $routingKey);

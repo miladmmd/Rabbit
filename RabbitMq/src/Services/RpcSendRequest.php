@@ -2,14 +2,25 @@
 
 namespace Miladmmd\RabbitMq\Services;
 
+
+use Miladmmd\RabbitMq\Interfaces\HandlerRequestInterface;
 use Miladmmd\RabbitMq\Interfaces\RpcSendRequestInterface;
 use PhpAmqpLib\Message\AMQPMessage;
 
-class RpcSendRequest extends RpcMethod implements RpcSendRequestInterface
+class RpcSendRequest extends Base implements RpcSendRequestInterface
 {
     protected string $routingKey;
     protected string $callbackQueue;
+    protected HandlerRequestInterface $handler;
+    public function __construct()
+    {
+        parent::__construct();
+    }
 
+    public function setHandler(HandlerRequestInterface $handler)
+    {
+        $this->handler = $handler;
+    }
     public function setRoutingKey(string $routingKey)
     {
         $this->routingKey = $routingKey;
@@ -23,13 +34,19 @@ class RpcSendRequest extends RpcMethod implements RpcSendRequestInterface
     protected function ack()
     {
         $this->channel->basic_consume($this->callbackQueue, '', false, false, false, false, function ($response) {
+            $this->handler->setRequest($response->body);
+            $this->handler->handle();
+            $response->delivery_info['channel']->basic_ack($response->delivery_info['delivery_tag']);
             echo "Response: " . $response->body . "\n";
+            $this->channel->close();
+
         });
+
 
         while (count($this->channel->callbacks)) {
             $this->channel->wait();
         }
-
+        $this->channel->close();
         return $this;
     }
 

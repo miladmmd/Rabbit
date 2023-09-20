@@ -2,18 +2,23 @@
 
 namespace Miladmmd\RabbitMq\Services;
 
-use Miladmmd\RabbitMq\Interfaces\HandlerInterface;
+use Miladmmd\RabbitMq\Interfaces\HandlerConsumeInterface;
 use Miladmmd\RabbitMq\Interfaces\RpcConsumeInterface;
 use PhpAmqpLib\Message\AMQPMessage;
 
-class RpcConsume extends RpcMethod implements RpcConsumeInterface
+class RpcConsume extends Base implements RpcConsumeInterface
 {
     protected $handler;
-    public function __construct(HandlerInterface $handler)
+
+    public function __construct()
     {
         parent::__construct();
-        $this->handler = $handler;
+    }
 
+
+    public function setHandler(HandlerConsumeInterface $handlerConsume)
+    {
+        $this->handler = $handlerConsume;
     }
 
     public function consume(string $queueName)
@@ -22,6 +27,7 @@ class RpcConsume extends RpcMethod implements RpcConsumeInterface
         echo "RPC Server waiting for requests...\n";
         $callback = function ($request) {
             $this->handler->setRequest($request->body);
+            $this->handler->handle();
             $msg = new AMQPMessage($request->body, ['correlation_id' => $request->get('correlation_id')]);
             $request->delivery_info['channel']->basic_publish($msg, '', $request->get('reply_to'));
             $request->delivery_info['channel']->basic_ack($request->delivery_info['delivery_tag']);
