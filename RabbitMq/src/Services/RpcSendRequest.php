@@ -11,15 +11,17 @@ class RpcSendRequest extends Base implements RpcSendRequestInterface
 {
     protected string $routingKey;
     protected string $callbackQueue;
-    protected HandlerRequestInterface $handler;
+    protected  $handler;
     public function __construct()
     {
         parent::__construct();
     }
 
-    public function setHandler(HandlerRequestInterface $handler)
+    public function setHandler($handler)
     {
+
         $this->handler = $handler;
+        $this->handler->handle();
     }
     public function setRoutingKey(string $routingKey)
     {
